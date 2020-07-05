@@ -1,0 +1,20 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.myflutter">
+    <!-- Flutter needs it to communicate with the running application
+        to allow setting breakpoints, to provide hot reload, etc.
+    -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDPaFRwkTfLGUgDovW6ZrldT9e77mYR7sU"/>
+            <!-- android:value="AIzaSyA3whKRHle7Fv6bk4mntyUY6f70CPIFHY8"/> -->
+            <!-- android:value="AIzaSyBMLQ3ZXfD-K3Ip54qEo5yobukiDUVLNOM"/> -->
+        
+    </application>
+    
+    />
+</manifest>
