@@ -40,6 +40,9 @@ dependencies:
   provider: ^3.0.0+1
   geocoder: ^0.1.2
   google_fonts: ^1.1.0
+  sliding_up_panel: ^1.0.2
+  font_awesome_flutter: ^8.8.1
+  shimmer: ^1.1.1
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -68,6 +71,8 @@ flutter:
   assets:
     - assets/bg.jpg
     - assets/doctor.png
+    - assets/doctor_location.png
+    - assets/location1.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

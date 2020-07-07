@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -18,6 +21,9 @@ class AppState with ChangeNotifier {
   final Set<Marker> _markers = {};
   final Set<Polyline> _polyLines = {};
   List<LatLng> routeCoords = [];
+  // for my custom icons
+  BitmapDescriptor sourceIcon;
+  BitmapDescriptor destinationIcon;
 
 
   PolylinePoints polylinePoints = PolylinePoints();
@@ -38,46 +44,52 @@ GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: googleAPIKey);
   GoogleMapController get mapController => _mapController;
   Set<Marker> get markers => _markers;
   Set<Polyline> get polyLines => _polyLines;
+  Uint8List markerIcon;
 
   AppState() {
     _getUserLocation();
-    // _loadingInitialPosition();
-    getsomePoints();
-    getPolylineRoute();
   }
 // ! TO GET THE USERS LOCATION
   void _getUserLocation() async {
-    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-    List<Placemark> placemark = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
-
-      print('User Position--------------------$position');
-    _initialPosition = LatLng(position.latitude, position.longitude);
-    print("the latitude is: ${position.longitude} and th longitude is: ${position.longitude} ");
-    print("initial position is : ${_initialPosition.toString()}");
-    print("The name of the position is : ${placemark[0].name} ${placemark[0].thoroughfare}, ${placemark[0].locality}");
-    locationController.text = placemark[0].name + ' ' +placemark[0].thoroughfare + ' ' +placemark[0].locality;
-
-    notifyListeners();
-  }
-  getsomePoints () async {
-    // getting the permission status from the user
+    
     var permissions = await Permission.getPermissionsStatus([PermissionName.Location]);
     if (permissions[0].permissionStatus == PermissionStatus.notAgain) {
       var askpermissions = await Permission.requestPermissions([PermissionName.Location]);
     } else {
-    // getting the coordinates of the user
-    routeCoords = await googleMapPolyline.getCoordinatesWithLocation(
-      origin:  LatLng(6.5273, 3.3414),
-      destination: LatLng(6.5536, 3.3567),
-      mode: RouteMode.driving);
-      makeRoute();
+
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+    List<Placemark> placemark = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
+
+    print('User Position--------------------$position');
+    _initialPosition = LatLng(position.latitude, position.longitude);
+
+    print("the latitude is: ${position.longitude} and th longitude is: ${position.longitude} ");
+    print("initial position is : ${_initialPosition.toString()}");
+    print("The name of the position is : ${placemark[0].name} ${placemark[0].thoroughfare}, ${placemark[0].locality}");
+    locationController.text = placemark[0].name + ' ' +placemark[0].thoroughfare + ' ' +placemark[0].locality;
+      // setSourceAndDestinationIcons();
+    markerIcon = await getBytesFromAsset('assets/doctor.png', 120);
+      
+      getPolylineRoute();
+
     }
+    notifyListeners();
   }
+
   void  getPolylineRoute() async{
     routeCoords = await googleMapPolyline.getCoordinatesWithLocation(
-      origin: LatLng(6.4698, 3.5852), destination: LatLng(6.4703, 3.2818), mode: RouteMode.driving);
-    addMarker(LatLng(6.524379, 3.379206), locationController.text);
+      origin: _initialPosition, destination: LatLng(6.4703, 3.2818), mode: RouteMode.driving);
+    addMarker(LatLng(6.4703, 3.2818), 'destination Text');
+    makeRoute();
+    notifyListeners();
   }
+
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+  ByteData data = await rootBundle.load(path);
+  ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+  ui.FrameInfo fi = await codec.getNextFrame();
+  return (await fi.image.toByteData(format: ui.ImageByteFormat.png)).buffer.asUint8List();
+}
 
   // ! TO CREATE ROUTE
   void createRoute(String encondedPoly) {
@@ -101,14 +113,45 @@ GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: googleAPIKey);
         );
   }
 
-  // ! ADD A MARKER ON THE MAO
-  addMarker(LatLng location, String address) {
-    _markers.add(Marker(
-        markerId: MarkerId('i\'m here'),
-        position: location,
-        infoWindow: InfoWindow(title: address, snippet: "go here"),
-        icon: BitmapDescriptor.defaultMarker));
+  // ! SEND REQUEST
+  void sendRequest(String intendedLocation) async {
+    List<Placemark> placemark =
+        await Geolocator().placemarkFromAddress(intendedLocation);
+    double latitude = placemark[0].position.latitude;
+    double longitude = placemark[0].position.longitude;
+    LatLng destination = LatLng(latitude, longitude);
+    // addMarker(destination, intendedLocation);
+    String route = await _googleMapsServices.getRouteCoordinates(
+        _initialPosition, destination);
+    createRoute(route);
     notifyListeners();
+  }
+
+  // ! ADD A MARKER ON THE MAO
+  addListMarker(List<LatLng> location, List<String> address) async {
+    for (var i = 0; i < location.length; i++) {
+    _markers.add(Marker(
+        markerId: MarkerId('$address'),
+        position: location[i],
+        infoWindow: InfoWindow(title: address[i], snippet: address[i]),
+        icon: BitmapDescriptor.defaultMarker));
+    }
+    notifyListeners();
+  }
+  addMarker(LatLng location, address) {
+    _markers.add(
+      Marker(markerId: MarkerId(_initialPosition.toString()),
+      position: _initialPosition,
+        infoWindow: InfoWindow(title: address, snippet: locationController.text),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue))
+    );
+    _markers.add(Marker(
+        markerId: MarkerId('$address'),
+        position: location,
+        infoWindow: InfoWindow(title: address, snippet: address),
+        icon: BitmapDescriptor.fromBytes(markerIcon))
+        );
+    // notifyListeners();
   }
 
   // ! CREATE LAGLNG LIST
@@ -155,20 +198,6 @@ GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: googleAPIKey);
     print(lList.toString());
 
     return lList;
-  }
-
-  // ! SEND REQUEST
-  void sendRequest(String intendedLocation) async {
-    List<Placemark> placemark =
-        await Geolocator().placemarkFromAddress(intendedLocation);
-    double latitude = placemark[0].position.latitude;
-    double longitude = placemark[0].position.longitude;
-    LatLng destination = LatLng(latitude, longitude);
-    addMarker(destination, intendedLocation);
-    String route = await _googleMapsServices.getRouteCoordinates(
-        _initialPosition, destination);
-    createRoute(route);
-    notifyListeners();
   }
 
   // ! ON CAMERA MOVE

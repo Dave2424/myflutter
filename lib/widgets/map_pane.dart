@@ -94,7 +94,7 @@ GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
               ),
               mapType: MapType.normal,
               onMapCreated: onMapCreated,
-              polylines: polylines,
+              // polylines: polylines,
               myLocationEnabled: true,
           ),
         ],

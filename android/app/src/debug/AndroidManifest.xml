@@ -10,9 +10,9 @@
     <application>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDPaFRwkTfLGUgDovW6ZrldT9e77mYR7sU"/>
-            <!-- android:value="AIzaSyA3whKRHle7Fv6bk4mntyUY6f70CPIFHY8"/> -->
+                    android:value="AIzaSyA3whKRHle7Fv6bk4mntyUY6f70CPIFHY8"/>
             <!-- android:value="AIzaSyBMLQ3ZXfD-K3Ip54qEo5yobukiDUVLNOM"/> -->
+            <!-- android:value="AIzaSyDPaFRwkTfLGUgDovW6ZrldT9e77mYR7sU"/> -->
         
     </application>
     
